@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <math.h>
 using namespace std;
 SDL_Surface * ekran = NULL;
 SDL_Surface * ludek = NULL;
@@ -30,9 +31,16 @@ SDL_Rect kursorDane;
 int myszkaX, myszkaY;
 SDL_Rect butelkaDane;
 
-Uint32 start=0, startStrzaluMyszka=1;
+Uint32 start=0, startStrzaluMyszka=0;
 
-double delta=0;
+double delta=0, delta1;
+
+int kursorX, kursorY;
+int bulletx, bullety;
+double bulletdx, bulletdy;
+int bulletvx, bulletvy;
+double deltaX,deltaY;
+				   double dlugosc;
 
 static void gameLogic(int value)
 {
@@ -102,6 +110,21 @@ SDL_Init( SDL_INIT_EVERYTHING );
                 }
 				CzyStrzelonoMyszka=0;
 				startStrzaluMyszka=SDL_GetTicks(); 
+
+				xBottle1=xBottle;
+                 yBottle1=yBottle;
+				 bulletx=xBottle1;
+                 bullety=yBottle1;
+                   kursorX=kursorDane.x;
+				  kursorY=kursorDane.y;
+
+				deltaX = kursorX - xBottle1; // delta to wektor w kierunku od punktu startowego do celu
+				deltaY = kursorY - yBottle1;
+				dlugosc = sqrt(deltaX * deltaX + deltaY * deltaY); // obliczamy d³ugoœæ wektora
+				deltaX /= dlugosc; // normalizujemy wektor delta, tzn jego d³ugoœæ bêdzie teraz równa 1
+				deltaY /= dlugosc;
+
+ 
             }
             if( zdarzenie.key.keysym.sym == SDLK_ESCAPE ) wyjscie =
                  true;
@@ -148,7 +171,8 @@ SDL_Init( SDL_INIT_EVERYTHING );
 
 		delta=SDL_GetTicks()-start; 
 		delta=delta/2;
-		
+		delta1=SDL_GetTicks()-startStrzaluMyszka; 
+		delta1=delta1/5;
 		if(CzyStrzelono==1)
 		{
 		xBottle=x+70;
@@ -169,20 +193,19 @@ SDL_Init( SDL_INIT_EVERYTHING );
 
 		if(CzyStrzelonoMyszka==1)
 		{
-			xBottle1=x+70;
-			yBottle1=y+25;
+			bulletx= xBottle;
+			bullety=yBottle;
 		}
-		if(CzyStrzelonoMyszka==0)
-		{
-			xBottle1=kursorDane.x+10;
-			yBottle1=kursorDane.y+25;
-		}
+		
 		
 		butelkaDestination.x = xBottle;
 		butelkaDestination.y = yBottle;
         SDL_BlitSurface( butelka, NULL, ekran, & butelkaDestination );
-        butelka1Destination.x = xBottle1;
-		butelka1Destination.y = yBottle1;
+
+		bulletx += deltaX*delta1;
+		bullety += deltaY*delta1;
+        butelka1Destination.x = bulletx;
+		butelka1Destination.y = bullety;
         SDL_BlitSurface( butelka1, NULL, ekran, & butelka1Destination );
 		
 		
