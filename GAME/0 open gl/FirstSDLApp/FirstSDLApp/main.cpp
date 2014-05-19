@@ -7,46 +7,49 @@
 #include <sstream>
 #include <math.h>
 using namespace std;
+
+#include "postac.h"
+CPostac ludek1;
+
 SDL_Surface * ekran = NULL;
 SDL_Surface * ludek = NULL;
 SDL_Surface * tlo = NULL;
 SDL_Surface * butelka = NULL;
 SDL_Surface * butelka1 = NULL;
 SDL_Surface * ogien = NULL;
+SDL_Surface * przycisk = NULL;
+SDL_Surface * kursor = NULL;
+
 SDL_Event zdarzenie;
+
 SDL_Rect LudekDestination;
 SDL_Rect butelkaDestination;
 SDL_Rect butelka1Destination;
 SDL_Rect ogienDestination;
-Uint8 * keystate = SDL_GetKeyState( NULL );
-int x,y, xBottle, yBottle,xBottle1, yBottle1;
-bool wyjscie = false;
-bool CzyStrzelono = 1;
-bool CzyStrzelonoMyszka = 1;
-SDL_Surface * przycisk = NULL;
-SDL_Surface * kursor = NULL;
 SDL_Rect przyciskDane;
 SDL_Rect przyciskCel;
 SDL_Rect kursorDane;
-int myszkaX, myszkaY;
 SDL_Rect butelkaDane;
+
+Uint8 * keystate = SDL_GetKeyState( NULL );
+
+int x, y, xBottle, yBottle, xBottle1, yBottle1, myszkaX, myszkaY;
+int kursorX, kursorY;
+int bulletx, bullety;
+int bulletvx, bulletvy;
+
+bool wyjscie = false;
+bool CzyStrzelono = 1;
+bool CzyStrzelonoMyszka = 1;
+
 
 Uint32 start=0, startStrzaluMyszka=0;
 
 double delta=0, delta1;
-
-int kursorX, kursorY;
-int bulletx, bullety;
 double bulletdx, bulletdy;
-int bulletvx, bulletvy;
 double deltaX,deltaY;
-				   double dlugosc;
+double dlugosc;
 
-static void gameLogic(int value)
-{
-	
-	
-}    
 
 
  
@@ -70,8 +73,8 @@ SDL_Init( SDL_INIT_EVERYTHING );
     przyciskCel.y = 0;
     kursorDane.x = 0;
     kursorDane.y = 0;
-    ludek = SDL_LoadBMP( "ludek.bmp" );
-
+	ludek = SDL_LoadBMP( "ludek.bmp" );
+	
 
  while( !wyjscie )
     {
@@ -101,57 +104,49 @@ SDL_Init( SDL_INIT_EVERYTHING );
             if( zdarzenie.type == SDL_MOUSEBUTTONDOWN )
             {
                 if( zdarzenie.button.button == SDL_BUTTON_LEFT &&
-                ( kursorDane.x >= przyciskCel.x && kursorDane.x <=
-                przyciskCel.x + przyciskDane.w ) &&( kursorDane.y >=
-                przyciskCel.y && kursorDane.y <= przyciskCel.y +
-                przyciskDane.h ) )
+                ( kursorDane.x >= przyciskCel.x && kursorDane.x <= przyciskCel.x + przyciskDane.w ) &&
+				( kursorDane.y >= przyciskCel.y && kursorDane.y <= przyciskCel.y + przyciskDane.h ) )
                 {
                     wyjscie = true;
                 }
+				
 				CzyStrzelonoMyszka=0;
 				startStrzaluMyszka=SDL_GetTicks(); 
 
 				xBottle1=xBottle;
-                 yBottle1=yBottle;
-				 bulletx=xBottle1;
-                 bullety=yBottle1;
-                   kursorX=kursorDane.x;
-				  kursorY=kursorDane.y;
-
-				deltaX = kursorX - xBottle1; // delta to wektor w kierunku od punktu startowego do celu
-				deltaY = kursorY - yBottle1;
-				dlugosc = sqrt(deltaX * deltaX + deltaY * deltaY); // obliczamy d³ugoœæ wektora
-				deltaX /= dlugosc; // normalizujemy wektor delta, tzn jego d³ugoœæ bêdzie teraz równa 1
-				deltaY /= dlugosc;
-
- 
+                yBottle1=yBottle;
+				bulletx=xBottle;
+				bullety=yBottle;
+                kursorX=kursorDane.x;
+				kursorY=kursorDane.y;
             }
-            if( zdarzenie.key.keysym.sym == SDLK_ESCAPE ) wyjscie =
-                 true;
-           
+            if( zdarzenie.key.keysym.sym == SDLK_ESCAPE ) 
+			{
+				wyjscie = true;
+			}
         }
-        if( keystate[ SDLK_RIGHT ] )
+        if( keystate[ SDLK_d ] )
         {
             if(x<700)
 			{
 			x=x+5;
 			}
         }
-		if( keystate[ SDLK_LEFT ] )
+		if( keystate[ SDLK_a ] )
         {
 			if(x>0)
 			{
             x=x-5;
 			}
         }
-		if( keystate[ SDLK_UP ] )
+		if( keystate[ SDLK_w ] )
         {
            if(y>0)
 		   {
 			y=y-5;
 		   }
         }
-		if( keystate[ SDLK_DOWN ] )
+		if( keystate[ SDLK_s ] )
         {
             if(y<500)
 			{
@@ -165,21 +160,19 @@ SDL_Init( SDL_INIT_EVERYTHING );
 			CzyStrzelono=0;
 			start=SDL_GetTicks(); 
         }
-        LudekDestination.x = x;
-		LudekDestination.y = y;
-        SDL_BlitSurface( ludek, NULL, ekran, & LudekDestination );
-
-		delta=SDL_GetTicks()-start; 
-		delta=delta/2;
-		delta1=SDL_GetTicks()-startStrzaluMyszka; 
-		delta1=delta1/5;
+        
+		
+		//Strzelanie space
 		if(CzyStrzelono==1)
 		{
 		xBottle=x+70;
 		yBottle=y+25;
+		butelkaDestination.x = xBottle;
+		butelkaDestination.y = yBottle;
 		}
 		if(CzyStrzelono==0)
 		{
+			delta=(SDL_GetTicks()-start)/2;
 			xBottle=xBottle+delta/5;
 			yBottle=yBottle-20*sin(45*3.14/180)+delta/5;
 			if(yBottle>(y+50))
@@ -189,31 +182,41 @@ SDL_Init( SDL_INIT_EVERYTHING );
 				ogienDestination.y = yBottle;
 				SDL_BlitSurface( ogien, NULL, ekran, & ogienDestination );	
 			}
+			butelkaDestination.x = xBottle;
+			butelkaDestination.y = yBottle;
 		}
 
+		//Strzelanie myszka
 		if(CzyStrzelonoMyszka==1)
 		{
-			bulletx= xBottle;
-			bullety=yBottle;
+			bulletx=x+70;
+			bullety=y+25;
+			butelka1Destination.x = bulletx;
+			butelka1Destination.y = bullety;
 		}
-		
-		
-		butelkaDestination.x = xBottle;
-		butelkaDestination.y = yBottle;
-        SDL_BlitSurface( butelka, NULL, ekran, & butelkaDestination );
-
+		if(CzyStrzelonoMyszka==0)
+		{
+		delta1=(SDL_GetTicks()-startStrzaluMyszka)/5;
+		deltaX = kursorX - xBottle1; // delta to wektor w kierunku od punktu startowego do celu
+		deltaY = kursorY - yBottle1;
+		dlugosc = sqrt(deltaX * deltaX + deltaY * deltaY); // obliczamy d³ugoœæ wektora
+		deltaX /= dlugosc; // normalizujemy wektor delta, tzn jego d³ugoœæ bêdzie teraz równa 1
+		deltaY /= dlugosc;
 		bulletx += deltaX*delta1;
 		bullety += deltaY*delta1;
         butelka1Destination.x = bulletx;
 		butelka1Destination.y = bullety;
+		}
+		
+		
+		LudekDestination.x = x;
+		LudekDestination.y = y;
+        SDL_BlitSurface( ludek, NULL, ekran, & LudekDestination );
+        SDL_BlitSurface( butelka, NULL, ekran, & butelkaDestination );
         SDL_BlitSurface( butelka1, NULL, ekran, & butelka1Destination );
-		
-		
-		
-		
 		SDL_Flip( ekran );
     }
-    SDL_FreeSurface( ludek );
+	SDL_FreeSurface( ludek );
 	SDL_FreeSurface( przycisk );
     SDL_FreeSurface( kursor );
 	SDL_FreeSurface( tlo );
