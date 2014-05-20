@@ -7,6 +7,8 @@
 #include <sstream>
 #include <math.h>
 using namespace std;
+#include <SDL_mixer.h>
+#include <SDL_audio.h>
 
 #include "postac.h"
 CPostac ludek1;
